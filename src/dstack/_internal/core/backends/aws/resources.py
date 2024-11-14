@@ -140,6 +140,7 @@ def create_instances_struct(
     allocate_public_ip: bool = True,
     placement_group_name: Optional[str] = None,
     enable_efa: bool = False,
+    max_efa_interfaces: int = 0,
 ) -> Dict[str, Any]:
     struct: Dict[str, Any] = dict(
         BlockDeviceMappings=[
@@ -191,12 +192,26 @@ def create_instances_struct(
         struct["NetworkInterfaces"] = [
             {
                 "AssociatePublicIpAddress": allocate_public_ip,
+                "NetworkCardIndex": 0,
                 "DeviceIndex": 0,
                 "SubnetId": subnet_id,
                 "Groups": [security_group_id],
                 "InterfaceType": "efa" if enable_efa else "interface",
             },
         ]
+
+        if enable_efa:
+            for i in range(1, max_efa_interfaces):
+                struct["NetworkInterfaces"].append(
+                    {
+                        "AssociatePublicIpAddress": False,
+                        "NetworkCardIndex": i,
+                        "DeviceIndex": 1,
+                        "SubnetId": subnet_id,
+                        "Groups": [security_group_id],
+                        "InterfaceType": "efa-only",
+                    }
+                )
     else:
         struct["SecurityGroupIds"] = [security_group_id]
 
