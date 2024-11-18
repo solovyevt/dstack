@@ -141,7 +141,8 @@ def create_instances_struct(
     placement_group_name: Optional[str] = None,
     enable_efa: bool = False,
     max_efa_interfaces: int = 0,
-    reservation_id: Optional[str] = None,
+    reservation_id: str = None,
+    is_capacity_block: bool = False,
 ) -> Dict[str, Any]:
     struct: Dict[str, Any] = dict(
         BlockDeviceMappings=[
@@ -169,10 +170,18 @@ def create_instances_struct(
         struct["IamInstanceProfile"] = {"Arn": iam_instance_profile_arn}
     if spot:
         struct["InstanceMarketOptions"] = {
-            "MarketType": "spot",
+            "MarketType": "spot" if spot else "capacity_block",
             "SpotOptions": {
                 "SpotInstanceType": "one-time",
                 "InstanceInterruptionBehavior": "terminate",
+            },
+        }
+
+    if is_capacity_block:
+        struct["InstanceMarketOptions"] = {
+            "MarketType": "capacity-block",
+            "CapacityReservationOptions": {
+                "CapacityReservationPreference": "closed",
             },
         }
     if enable_efa and not subnet_id:
