@@ -170,7 +170,7 @@ def create_instances_struct(
         struct["IamInstanceProfile"] = {"Arn": iam_instance_profile_arn}
     if spot:
         struct["InstanceMarketOptions"] = {
-            "MarketType": "spot" if spot else "capacity_block",
+            "MarketType": "spot",
             "SpotOptions": {
                 "SpotInstanceType": "one-time",
                 "InstanceInterruptionBehavior": "terminate",
