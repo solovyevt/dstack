@@ -234,9 +234,14 @@ class AWSCompute(Compute):
                         allocate_public_ip=allocate_public_ip,
                         placement_group_name=instance_config.placement_group_name,
                         enable_efa=enable_efa,
+                        max_efa_interfaces=max_efa_interfaces,
                         reservation_id=instance_config.reservation,
                     )
                 )
+
+                # TODO create EFA network interfaces and attach to the node. Wait until node is running.
+                #   Maybe should be created before the node and attached on start?
+
                 instance = response[0]
                 instance.wait_until_running()
                 instance.reload()  # populate instance.public_ip_address
@@ -751,11 +756,13 @@ def _supported_instances(offer: InstanceOffer) -> bool:
         "g4dn.",
         "g5.",
         "g6.",
+        "g6e.",
         "gr6.",
         "p3.",
         "p4d.",
         "p4de.",
         "p5.",
+        "c6in.",
     ]:
         if offer.instance.name.startswith(family):
             return True
