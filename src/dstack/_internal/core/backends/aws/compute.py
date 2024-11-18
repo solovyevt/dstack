@@ -245,6 +245,7 @@ class AWSCompute(Compute):
                         enable_efa=enable_efa,
                         max_efa_interfaces=max_efa_interfaces,
                         reservation_id=instance_config.reservation,
+                        is_capacity_block=is_capacity_block,
                     )
                 )
 
@@ -269,7 +270,6 @@ class AWSCompute(Compute):
                     region=instance_offer.region,
                     availability_zone=az,
                     reservation=instance.capacity_reservation_id,
-                    is_capacity_block=is_capacity_block,
                     price=instance_offer.price,
                     username=username,
                     ssh_port=22,
