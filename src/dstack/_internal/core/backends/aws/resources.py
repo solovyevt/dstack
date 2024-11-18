@@ -178,12 +178,7 @@ def create_instances_struct(
         }
 
     if is_capacity_block:
-        struct["InstanceMarketOptions"] = {
-            "MarketType": "capacity-block",
-            "CapacityReservationOptions": {
-                "CapacityReservationPreference": "closed",
-            },
-        }
+        struct["InstanceMarketOptions"] = {"MarketType": "capacity-block"}
     if enable_efa and not subnet_id:
         raise ComputeError("EFA requires subnet")
     # AWS allows specifying either NetworkInterfaces for specific subnet_id
