@@ -273,6 +273,7 @@ async def create_fleet(
                     pool=pool,
                     spec=spec,
                     placement_group_name=placement_group_name,
+                    reservation=spec.configuration.reservation,
                     instance_num=i,
                 )
                 fleet_model.instances.append(instance_model)
@@ -287,6 +288,7 @@ async def create_fleet_instance_model(
     pool: PoolModel,
     spec: FleetSpec,
     placement_group_name: Optional[str],
+    reservation: Optional[str],
     instance_num: int,
 ) -> InstanceModel:
     profile = spec.merged_profile
@@ -301,6 +303,7 @@ async def create_fleet_instance_model(
         instance_name=f"{spec.configuration.name}-{instance_num}",
         instance_num=instance_num,
         placement_group_name=placement_group_name,
+        reservation=reservation,
     )
     return instance_model
 
@@ -647,6 +650,7 @@ def _get_fleet_requirements(fleet_spec: FleetSpec) -> Requirements:
         resources=fleet_spec.configuration.resources or ResourcesSpec(),
         max_price=profile.max_price,
         spot=get_policy_map(profile.spot_policy, default=SpotPolicy.ONDEMAND),
+        reservation=fleet_spec.configuration.reservation,
     )
     return requirements
 

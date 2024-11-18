@@ -17,6 +17,8 @@ def print_fleets_table(fleets: List[Fleet], verbose: bool = False) -> None:
 def get_fleets_table(fleets: List[Fleet], verbose: bool = False) -> Table:
     table = Table(box=None)
     table.add_column("FLEET", no_wrap=True)
+    if verbose:
+        table.add_column("RESERVATION")
     table.add_column("INSTANCE")
     table.add_column("BACKEND")
     table.add_column("RESOURCES")
@@ -58,6 +60,12 @@ def get_fleets_table(fleets: List[Fleet], verbose: bool = False) -> Table:
                 status,
                 pretty_date(instance.created),
             ]
+
+            if verbose and i == 0:
+                row.insert(
+                    1,
+                    fleet.spec.configuration.reservation if i == 0 else "",
+                )
 
             if verbose:
                 error = ""
