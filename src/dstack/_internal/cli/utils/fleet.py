@@ -61,7 +61,7 @@ def get_fleets_table(fleets: List[Fleet], verbose: bool = False) -> Table:
                 pretty_date(instance.created),
             ]
 
-            if verbose and i == 0:
+            if verbose:
                 row.insert(
                     1,
                     fleet.spec.configuration.reservation if i == 0 else "",
