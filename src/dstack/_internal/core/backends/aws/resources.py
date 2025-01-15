@@ -150,7 +150,7 @@ def create_instances_struct(
                 "DeviceName": "/dev/sda1",
                 "Ebs": {
                     "VolumeSize": disk_size,
-                    "VolumeType": "gp2",
+                    "VolumeType": "gp3",
                 },
             }
         ],
