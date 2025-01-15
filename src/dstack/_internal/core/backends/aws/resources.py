@@ -140,6 +140,7 @@ def create_instances_struct(
     allocate_public_ip: bool = True,
     placement_group_name: Optional[str] = None,
     enable_efa: bool = False,
+    max_efa_interfaces: int = 0,
     reservation_id: Optional[str] = None,
     is_capacity_block: bool = False,
 ) -> Dict[str, Any]:
@@ -178,7 +179,8 @@ def create_instances_struct(
 
     if is_capacity_block:
         struct["InstanceMarketOptions"] = {"MarketType": "capacity-block"}
-    if enable_efa and not subnet_id:
+    if max_efa_interfaces > 0 and not subnet_id:
+        # TODO test without private subnet, probably should be a soft check
         raise ComputeError("EFA requires subnet")
     # AWS allows specifying either NetworkInterfaces for specific subnet_id
     # or instance-level SecurityGroupIds in case of no specific subnet_id, not both.
@@ -196,12 +198,48 @@ def create_instances_struct(
         struct["NetworkInterfaces"] = [
             {
                 "AssociatePublicIpAddress": allocate_public_ip,
+                "NetworkCardIndex": 0,
                 "DeviceIndex": 0,
                 "SubnetId": subnet_id,
                 "Groups": [security_group_id],
-                "InterfaceType": "efa" if enable_efa else "interface",
+                "InterfaceType": "efa" if max_efa_interfaces > 0 else "interface",
             },
         ]
+
+        # TODO add an extra check for allocate_public_ip = False
+        if instance_type == "p5.48xlarge":
+            # EFA configuration for P5 instances: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-acc-inst-types.html#efa-for-p5
+            p5d_interfaces = [
+                {
+                    "NetworkCardIndex": i,
+                    "DeviceIndex": 1,
+                    "InterfaceType": "efa" if i % 4 == 0 else "efa-only",
+                }
+                for i in range(1, 32)
+            ]
+            for interface in p5d_interfaces:
+                struct["NetworkInterfaces"].append(
+                    {
+                        "AssociatePublicIpAddress": False,
+                        "NetworkCardIndex": interface["NetworkCardIndex"],
+                        "DeviceIndex": interface["DeviceIndex"],
+                        "SubnetId": subnet_id,
+                        "Groups": [security_group_id],
+                        "InterfaceType": interface["InterfaceType"],
+                    }
+                )
+        elif max_efa_interfaces > 1:
+            for i in range(1, max_efa_interfaces):
+                struct["NetworkInterfaces"].append(
+                    {
+                        "AssociatePublicIpAddress": False,
+                        "NetworkCardIndex": i,
+                        "DeviceIndex": 1,
+                        "SubnetId": subnet_id,
+                        "Groups": [security_group_id],
+                        "InterfaceType": "efa-only",
+                    }
+                )
     else:
         struct["SecurityGroupIds"] = [security_group_id]
 
